@@ -48,10 +48,6 @@ public class DayLength {
         return sunSet;
     }
 
-    public String getSolarNoon() {
-        return solarNoon;
-    }
-
     public String getDayLength() {
         return dayLength;
     }

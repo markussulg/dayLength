@@ -1,31 +1,80 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<!--
+Used sources for leaflet: https://www.youtube.com/watch?v=wVnimcQsuwk
+-->
 <head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
     <title>Day length Calculator</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <style>
+        #map {
+            height: 500px;
+            width:800px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Latitude, longitude, date => Daytime length</h1>
-    <form method="post">
-        <label>Latitude (-90 to 90)</label>
-        <p><input type = "text" name="lat"></p>
-        <label>Longitude (-180 to 180)</label>
-        <p><input type = "text" name="long"></p>
-        <label>Time as year-month-day</label>
-        <p><input type = "text" name="time"></p>
-        <input type="submit" value="Calculate daytime">
-        <a href="https://sunrise-sunset.org/api">Used API</a>
-    </form>
-    <div>
-    </div>
-    <div>
-        <h2>Day length:</h2>
-        <p th:text="${result.getDayLength()}"></p>
-        <h2>Sunrise in UTC time</h2>
-        <p th:text="${result.getSunRise()}"></p>
-        <h2>Sunset in UTC time</h2>
-        <p th:text="${result.getSunSet()}"></p>
-    </div>
+<h1>Latitude, longitude, date => Daytime length</h1>
+<form action="" id = "myForm" method="post">
+    <label for="lat" >Latitude (-90 to 90)</label>
+    <p><input type="text" name="lat" id ="lat"></p>
+    <label for="long">Longitude (-180 to 180)</label>
+    <p><input type="text" name="long" id="long"></p>
+    <label for="datetime">Date as year-month-day</label>
+    <p><input type="text" name="datetime" id = "datetime"></p>
+    <input id="submitForm" type="button" value="Calculate daytime" onclick="markerAtCoordinate(lat.value,long.value);makePostRequest(lat.value,long.value, datetime.value);">
+    <a href="https://sunrise-sunset.org/api">Used API</a>
+</form>
+<div>
+</div>
+<div>
+    <h2>Day length:</h2>
+    <p th:text="${result.getDayLength()}" id="dayLength"></p>
+    <h2>Sunrise in UTC time</h2>
+    <p th:text="${result.getSunRise()}" id = "sunRise"></p>
+    <h2>Sunset in UTC time</h2>
+    <p th:text="${result.getSunSet()}" id = "sunSet"></p>
+</div>
+<div id="map"></div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+</script>
+<script>
+
+    function makePostRequest(lat, long, date) {
+        const data={
+            lat:lat,
+            long:long,
+            time:date
+        };
+        $.post("", data, function(response) {
+            document.getElementById(`dayLength`).innerHTML = response;
+            $("lat").textContent = 'hi';
+            $("dayLength").text(response);
+            console.log(response);
+        });
+    };
+        var map = L.map('map').setView([0, 0], 2);
+    L.tileLayer('https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=XZmXaMdidGOHqGZmuYH8', {
+        attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
+            '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
+    }).addTo(map);
+    var layerGroup = L.layerGroup().addTo(map);
+
+    map.on('click', function(e) {
+        markerAtCoordinate(e.latlng.lat, e.latlng.lng);
+    });
+    function markerAtCoordinate(lat, long) {
+        layerGroup.clearLayers();
+        map.closePopup();
+        marker = L.marker([lat, long]).addTo(layerGroup);
+        marketText = `Coordinates [${parseFloat(lat).toFixed(4)} ${parseFloat(long).toFixed(4)}]`;
+        marker.bindPopup(marketText).openPopup();
+    }
+</script>
 
 </body>
 </html>
