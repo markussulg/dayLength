@@ -1,15 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>New title</title>
+    <title>Day length Calculator</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-    <h1>latitude, longitude, time to day length calculator</h1>
+    <h1>Latitude, longitude, date => Daytime length</h1>
     <form method="post">
-        <p>Lat : <input type = "text" name="lat"></p>
-        <p>Long : <input type = "text" name="long"></p>
-        <p>Time : <input type = "text" name="time"></p>
-        <input type="submit" value="Calculate...">
+        <label>Latitude (-90 to 90)</label>
+        <p><input type = "text" name="lat"></p>
+        <label>Longitude (-180 to 180)</label>
+        <p><input type = "text" name="long"></p>
+        <label>Time as year-month-day</label>
+        <p><input type = "text" name="time"></p>
+        <input type="submit" value="Calculate daytime">
+        <a href="https://sunrise-sunset.org/api">Used API</a>
     </form>
+    <div>
+    </div>
+    <div>
+        <h2>Day length:</h2>
+        <p th:text="${result.getDayLength()}"></p>
+        <h2>Sunrise in UTC time</h2>
+        <p th:text="${result.getSunRise()}"></p>
+        <h2>Sunset in UTC time</h2>
+        <p th:text="${result.getSunSet()}"></p>
+    </div>
+
 </body>
 </html>
