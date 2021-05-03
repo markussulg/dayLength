@@ -14,14 +14,14 @@ public class DayLength {
     private String astronomicalTwilightStart;
     private String astronomicalTwilightEnd;
 
-    public DayLength(@JsonProperty(value = "sunrise")String sunRise, @JsonProperty(value = "sunset")String sunSet,
-                     @JsonProperty(value = "solar_noon") String solarNoon, @JsonProperty(value = "day_length")String dayLength,
-                     @JsonProperty(value = "civil_twilight_begin")String civilTwilightStart,
-                     @JsonProperty(value = "civil_twilight_end")String civlTwilightEnd,
-                     @JsonProperty(value = "nautical_twilight_begin")String nauticalTwilightStart,
-                     @JsonProperty(value = "nautical_twilight_end")String nauticalTwilightEnd,
-                     @JsonProperty(value = "astronomical_twilight_begin")String astronomicalTwilightStart,
-                     @JsonProperty(value = "astronomical_twilight_end")String astronomicalTwilightEnd) {
+    public DayLength(@JsonProperty(value = "sunrise") String sunRise, @JsonProperty(value = "sunset") String sunSet,
+                     @JsonProperty(value = "solar_noon") String solarNoon, @JsonProperty(value = "day_length") String dayLength,
+                     @JsonProperty(value = "civil_twilight_begin") String civilTwilightStart,
+                     @JsonProperty(value = "civil_twilight_end") String civlTwilightEnd,
+                     @JsonProperty(value = "nautical_twilight_begin") String nauticalTwilightStart,
+                     @JsonProperty(value = "nautical_twilight_end") String nauticalTwilightEnd,
+                     @JsonProperty(value = "astronomical_twilight_begin") String astronomicalTwilightStart,
+                     @JsonProperty(value = "astronomical_twilight_end") String astronomicalTwilightEnd) {
         this.sunRise = sunRise;
         this.sunSet = sunSet;
         this.solarNoon = solarNoon;

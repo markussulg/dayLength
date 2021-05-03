@@ -13,23 +13,24 @@ Used sources for leaflet: https://www.youtube.com/watch?v=wVnimcQsuwk
     <style>
         #map {
             height: 500px;
-            width:800px;
+            width: 800px;
         }
     </style>
 </head>
 <body>
 <h1>Latitude, longitude, date => Daytime length</h1>
 <div>
-    <div style="width: 200px; float: left;">
-        <form action="" id = "myForm" method="post">
-            <label for="lat" >Latitude (-90 to 90)</label>
-            <p><input type="text" name="lat" id ="lat"></p>
+    <div style="width: 250px; float: left;">
+        <form action="" id="myForm" method="post">
+            <label for="lat">Latitude (-90 to 90)</label>
+            <p><input type="text" name="lat" id="lat"></p>
             <label for="long">Longitude (-180 to 180)</label>
             <p><input type="text" name="long" id="long"></p>
             <label for="datetime">Start date as year-month-day</label>
-            <p><input value="2021-05-03" type="text" name="datetime" id = "datetime"></p>
-            <label for="datetimeEnd">End date as year-month-day</label>
-            <p><input value="2021-05-03" type="text" name="datetimeEnd" id = "datetimeEnd"></p>
+            <p><input value="2021-05-03" type="text" name="datetime" id="datetime"></p>
+            <label for="datetimeEnd">End date as year-month-day<br>(Disclaimer: Big date difference results in long
+            graph waiting time)</label>
+            <p><input value="2021-05-03" type="text" name="datetimeEnd" id="datetimeEnd"></p>
             <input id="submitForm" type="button" value="Calculate daytime"
                    onclick="drawBasic(parseDate(datetime.value), parseDate(datetimeEnd.value), lat.value,long.value);
                    markerAtCoordinate(lat.value,long.value);makePostRequest(lat.value,long.value, datetime.value);">
@@ -39,9 +40,9 @@ Used sources for leaflet: https://www.youtube.com/watch?v=wVnimcQsuwk
             <h2>Day length:</h2>
             <p th:text="${result.getDayLength()}" id="dayLength"></p>
             <h2>Sunrise in UTC time</h2>
-            <p th:text="${result.getSunRise()}" id = "sunRise"></p>
+            <p th:text="${result.getSunRise()}" id="sunRise"></p>
             <h2>Sunset in UTC time</h2>
-            <p th:text="${result.getSunSet()}" id = "sunSet"></p>
+            <p th:text="${result.getSunSet()}" id="sunSet"></p>
         </div>
     </div>
     <div id="map" style="width: 60%; float: right;"></div>
@@ -51,80 +52,102 @@ Used sources for leaflet: https://www.youtube.com/watch?v=wVnimcQsuwk
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
 </script>
 <script>
+    let list = [];
+
     //https://stackoverflow.com/questions/2627650/why-javascript-gettime-is-not-a-function
     function parseDate(input) {
         var parts = input.match(/(\d+)/g);
-        return new Date(parts[0], parts[1]-1, parts[2]);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
     }
-    function drawBasic(startDate, endDate, lat, lon) {
-        days = (endDate.getTime()-startDate.getTime()) / (1000 * 3600*24);
-        console.log(days)
-        var dataPoints = [];
-        for (i = 0; i < days; i++) {
-            var dayLength = makePostRequest(lat,lon,startDate.getFullYear() + "-" + (startDate.getMonth()+1) +"-"  + (startDate.getDate() + i));
-            dayLengthString = document.getElementById(`dayLength`).innerHTML;
-            let s = dayLengthString.split(":");
-            dataPoints.push({x: new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i),
-                y:parseFloat(s[0] + "." + s[1] + s[2])})
+
+    async function drawBasic(startDate, endDate, lat, lon) {
+        if (endDate == "")
+            return;
+        days = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
+        list.length = 0;
+        for (i = 0; i < days + 1; i++) {
+            newDate = new Date(startDate.valueOf());
+            newDate.setDate(newDate.getDate() + i);
+            await simplePostRequest(lat, lon,
+                newDate.getFullYear() + "-" + (newDate.getMonth() + 1) + "-" + (newDate.getDate()), startDate, i);
         }
-        console.log(dataPoints)
+        console.log(list)
         var chart = new CanvasJS.Chart(document.getElementById('chart_div'),
             {
-                title:{
+                title: {
                     text: "Daytime length"
                 },
-                axisX:{
+                axisX: {
                     title: "Timeline",
-                    gridThickness: 2
+                    valueFormatString: "DD-MMM",
+                    labelAngle: -50,
                 },
                 axisY: {
-                    title: "Day Length in float value(hours.minutesSeconds)"
+                    title: "Day Length (hours)",
                 },
                 data: [
                     {
-                        type: "area",
+                        type: "spline",
 
-                        dataPoints: dataPoints
+                        dataPoints: list
                     }
                 ]
             });
-
         chart.render();
     }
+
     function makePostRequest(lat, long, date) {
-        const data={
-            lat:lat,
-            long:long,
-            time:date
+        const data = {
+            lat: lat,
+            long: long,
+            time: date
         };
-        $.post("", data, function(response) {
+        $.post("", data, function (response) {
             var responseList = response.split('","');
-            let dayLength = responseList[2].split('":"')[1].slice(0,-2);
+            let dayLength = responseList[2].split('":"')[1].slice(0, -2);
             document.getElementById(`dayLength`).innerHTML = dayLength;
             document.getElementById(`sunRise`).innerHTML = responseList[0].split('":"')[1];
             document.getElementById(`sunSet`).innerHTML = responseList[1].split('":"')[1];
-            console.log(response);
-            console.log(dayLength)
-            return dayLength;
 
         });
     }
-        var map = L.map('map').setView([0, 0], 2);
-    L.tileLayer('https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=XZmXaMdidGOHqGZmuYH8', {
-        attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
-            '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
-    }).addTo(map);
-    var layerGroup = L.layerGroup().addTo(map);
 
-    map.on('click', function(e) {
-        markerAtCoordinate(e.latlng.lat, e.latlng.lng);
-    });
-    function markerAtCoordinate(lat, long) {
-        layerGroup.clearLayers();
-        map.closePopup();
-        marker = L.marker([lat, long]).addTo(layerGroup);
-        marketText = `Coordinates [${parseFloat(lat).toFixed(4)} ${parseFloat(long).toFixed(4)}]`;
-        marker.bindPopup(marketText).openPopup();
+    async function simplePostRequest(lat, long, date, startDate, i) {
+        const data = {
+            lat: lat,
+            long: long,
+            time: date
+        };
+        await $.post("", data, function (response) {
+            var responseList = response.split('","');
+            let dayLength = responseList[2].split('":"')[1].slice(0, -2);
+            let s = dayLength.split(":");
+            list.push({
+                x: new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i),
+                y: (parseInt(s[0]) + parseInt(s[1]) / 60 + parseInt(s[2]) / 3600)
+            });
+        });
+    }
+
+    {
+        var map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=XZmXaMdidGOHqGZmuYH8', {
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
+                '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
+        }).addTo(map);
+        var layerGroup = L.layerGroup().addTo(map);
+
+        map.on('click', function (e) {
+            markerAtCoordinate(e.latlng.lat, e.latlng.lng);
+        });
+
+        function markerAtCoordinate(lat, long) {
+            layerGroup.clearLayers();
+            map.closePopup();
+            marker = L.marker([lat, long]).addTo(layerGroup);
+            marketText = `Coordinates [${parseFloat(lat).toFixed(4)} ${parseFloat(long).toFixed(4)}]`;
+            marker.bindPopup(marketText).openPopup();
+        }
     }
 </script>
 
