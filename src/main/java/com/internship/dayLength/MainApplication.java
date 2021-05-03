@@ -1,5 +1,6 @@
 package com.internship.dayLength;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.internship.dayLength.api.DayLength;
@@ -10,15 +11,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.xml.transform.Result;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
-import static org.springframework.http.HttpStatus.CREATED;
 
 @SpringBootApplication
 @Controller
@@ -52,10 +51,13 @@ public class MainApplication {
 			response=new DayLength("N/A", "N/A", "N/A");
 		}
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
 		return mapper.writeValueAsString(response);
 	}
 	//API homepage: https://sunrise-sunset.org/api
 	public static ResponseBody getDayLength(String lat, String longitude, String time) throws IOException, InterruptedException {
+		System.out.println(time);
+		System.out.println(":" + time  + ":");
 		String newRequest = String.format("https://api.sunrise-sunset.org/json?lat=%s&lng=%s&date=%s", lat, longitude, time);
 		System.out.println(newRequest);
 		var client = HttpClient.newHttpClient();
@@ -65,8 +67,9 @@ public class MainApplication {
 				.build();
 		final HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
-		final ObjectMapper objectMapper = new ObjectMapper();
-		return objectMapper.readValue(response.body(), ResponseBody.class);
+		final ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+		return mapper.readValue(response.body(), ResponseBody.class);
 	}
 
 }
